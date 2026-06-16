@@ -1,0 +1,426 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════
+   KISHTWAR TOURISM PORTAL — Design System
+   Color: Dark Green + Emerald + Cream
+   Style: Premium Tourism, Glassmorphism, Modern
+   ═══════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────
+   CSS Custom Properties
+   ───────────────────────────────────────────── */
+
+:root {
+  /* Primary - Dark Green */
+  --kishtwar-green-50: #f0fdf4;
+  --kishtwar-green-100: #dcfce7;
+  --kishtwar-green-200: #bbf7d0;
+  --kishtwar-green-300: #86efac;
+  --kishtwar-green-400: #4ade80;
+  --kishtwar-green-500: #1a5632;
+  --kishtwar-green-600: #15472a;
+  --kishtwar-green-700: #0f3820;
+  --kishtwar-green-800: #0a2916;
+  --kishtwar-green-900: #051a0c;
+
+  /* Cream / Off-white */
+  --kishtwar-cream: #faf8f0;
+  --kishtwar-cream-100: #f5f0e1;
+  --kishtwar-cream-200: #ebe5d0;
+
+  /* Accent Colors */
+  --kishtwar-gold: #c9a84c;
+  --kishtwar-gold-light: #dfc77a;
+  --kishtwar-emerald: #10b981;
+  --kishtwar-sapphire: #2563eb;
+  --kishtwar-saffron: #f59e0b;
+
+  /* Semantic */
+  --background: #faf8f0;
+  --foreground: #0a2916;
+  --card: #ffffff;
+  --card-foreground: #0f3820;
+  --popover: #ffffff;
+  --popover-foreground: #0f3820;
+  --primary: #1a5632;
+  --primary-foreground: #ffffff;
+  --secondary: #f0fdf4;
+  --secondary-foreground: #1a5632;
+  --muted: #f5f0e1;
+  --muted-foreground: #6b7a6f;
+  --accent: #dcfce7;
+  --accent-foreground: #0f3820;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e5e7eb;
+  --input: #e5e7eb;
+  --ring: #1a5632;
+  --radius: 0.625rem;
+
+  /* Chart colors */
+  --chart-1: #1a5632;
+  --chart-2: #10b981;
+  --chart-3: #c9a84c;
+  --chart-4: #2563eb;
+  --chart-5: #f59e0b;
+}
+
+/* ─────────────────────────────────────────────
+   Tailwind CSS v4 Theme Configuration
+   ───────────────────────────────────────────── */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Kishtwar Brand Colors */
+  --color-kishtwar-green-50: var(--kishtwar-green-50);
+  --color-kishtwar-green-100: var(--kishtwar-green-100);
+  --color-kishtwar-green-200: var(--kishtwar-green-200);
+  --color-kishtwar-green-300: var(--kishtwar-green-300);
+  --color-kishtwar-green-400: var(--kishtwar-green-400);
+  --color-kishtwar-green-500: var(--kishtwar-green-500);
+  --color-kishtwar-green-600: var(--kishtwar-green-600);
+  --color-kishtwar-green-700: var(--kishtwar-green-700);
+  --color-kishtwar-green-800: var(--kishtwar-green-800);
+  --color-kishtwar-green-900: var(--kishtwar-green-900);
+  --color-kishtwar-cream: var(--kishtwar-cream);
+  --color-kishtwar-cream-100: var(--kishtwar-cream-100);
+  --color-kishtwar-cream-200: var(--kishtwar-cream-200);
+  --color-kishtwar-gold: var(--kishtwar-gold);
+  --color-kishtwar-gold-light: var(--kishtwar-gold-light);
+  --color-kishtwar-emerald: var(--kishtwar-emerald);
+  --color-kishtwar-sapphire: var(--kishtwar-sapphire);
+  --color-kishtwar-saffron: var(--kishtwar-saffron);
+
+  /* Chart colors */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 8px);
+
+  /* Typography */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-heading: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Animations */
+  --animate-fade-in: fade-in 0.5s ease-out;
+  --animate-fade-up: fade-up 0.6s ease-out;
+  --animate-slide-in-left: slide-in-left 0.5s ease-out;
+  --animate-slide-in-right: slide-in-right 0.5s ease-out;
+  --animate-scale-in: scale-in 0.3s ease-out;
+  --animate-float: float 3s ease-in-out infinite;
+  --animate-shimmer: shimmer 2s linear infinite;
+  --animate-count-up: count-up 1.5s ease-out;
+}
+
+/* ─────────────────────────────────────────────
+   Keyframe Animations
+   ───────────────────────────────────────────── */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─────────────────────────────────────────────
+   Base Styles
+   ───────────────────────────────────────────── */
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─────────────────────────────────────────────
+   Glassmorphism Utilities
+   ───────────────────────────────────────────── */
+
+.glass {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-dark {
+  background: rgba(10, 41, 22, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* ─────────────────────────────────────────────
+   Text Gradient Utility
+   ───────────────────────────────────────────── */
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--kishtwar-green-500), var(--kishtwar-emerald));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, var(--kishtwar-gold), var(--kishtwar-saffron));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─────────────────────────────────────────────
+   Premium Card Hover Effect
+   ───────────────────────────────────────────── */
+
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* ─────────────────────────────────────────────
+   Image Overlay for Cards
+   ───────────────────────────────────────────── */
+
+.image-overlay {
+  position: relative;
+  overflow: hidden;
+}
+
+.image-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(10, 41, 22, 0.85) 0%,
+    rgba(10, 41, 22, 0.3) 40%,
+    transparent 100%
+  );
+  transition: opacity 0.3s ease;
+}
+
+.image-overlay:hover::after {
+  background: linear-gradient(
+    to top,
+    rgba(10, 41, 22, 0.9) 0%,
+    rgba(10, 41, 22, 0.4) 40%,
+    transparent 100%
+  );
+}
+
+/* ─────────────────────────────────────────────
+   Scrollbar Styling
+   ───────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--kishtwar-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--kishtwar-green-500);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--kishtwar-green-600);
+}
+
+/* ─────────────────────────────────────────────
+   Skeleton Loading Animation
+   ───────────────────────────────────────────── */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--kishtwar-cream) 25%,
+    var(--kishtwar-cream-100) 50%,
+    var(--kishtwar-cream) 75%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+/* ─────────────────────────────────────────────
+   Rich Text Content Styling
+   ───────────────────────────────────────────── */
+
+.prose-kishtwar h2 {
+  color: var(--kishtwar-green-700);
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose-kishtwar h3 {
+  color: var(--kishtwar-green-600);
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose-kishtwar p {
+  line-height: 1.8;
+  margin-bottom: 1rem;
+  color: #374151;
+}
+
+.prose-kishtwar a {
+  color: var(--kishtwar-emerald);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose-kishtwar a:hover {
+  color: var(--kishtwar-green-500);
+}
+
+.prose-kishtwar blockquote {
+  border-left: 4px solid var(--kishtwar-green-500);
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  color: #4b5563;
+  font-style: italic;
+}
+
+.prose-kishtwar img {
+  border-radius: var(--radius);
+  margin: 1.5rem 0;
+}
+
+.prose-kishtwar ul,
+.prose-kishtwar ol {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.prose-kishtwar li {
+  margin-bottom: 0.5rem;
+  line-height: 1.7;
+}
+
+/* ─────────────────────────────────────────────
+   Hide scrollbar (for horizontal nav)
+   ───────────────────────────────────────────── */
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─────────────────────────────────────────────
+   Leaflet Map Fixes
+   ───────────────────────────────────────────── */
+
+.leaflet-container {
+  z-index: 0;
+  border-radius: var(--radius);
+}
+
+/* ─────────────────────────────────────────────
+   TipTap Editor Styling
+   ───────────────────────────────────────────── */
+
+.tiptap-editor .ProseMirror {
+  min-height: 300px;
+  padding: 1rem;
+  outline: none;
+}
+
+.tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #9ca3af;
+  pointer-events: none;
+  height: 0;
+}
+
+.tiptap-editor .ProseMirror:focus {
+  outline: none;
+}

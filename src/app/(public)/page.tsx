@@ -1,0 +1,52 @@
+import { prisma } from "@/lib/prisma";
+import type { HeroSlideData } from "@/types";
+
+// Import sections
+import HeroSection from "@/components/sections/HeroSection";
+import QuickNavSection from "@/components/sections/QuickNavSection";
+import ExploreSection from "@/components/sections/ExploreSection";
+import StatsSection from "@/components/sections/StatsSection";
+import GalleryPreviewSection from "@/components/sections/GalleryPreviewSection";
+
+export const revalidate = 3600; // Revalidate every hour
+
+export default async function HomePage() {
+  // Fetch active hero slides for the background slideshow/images
+  const dbSlides = await prisma.heroSlide.findMany({
+    where: { isActive: true },
+    orderBy: { sortOrder: "asc" },
+  });
+  
+  const slides: HeroSlideData[] = dbSlides.map(slide => ({
+    id: slide.id,
+    title: slide.title,
+    subtitle: slide.subtitle,
+    backgroundImage: slide.backgroundImage,
+    backgroundVideoUrl: slide.backgroundVideoUrl,
+    ctaText: slide.ctaText,
+    ctaLink: slide.ctaLink,
+    ctaSecondaryText: slide.ctaSecondaryText,
+    ctaSecondaryLink: slide.ctaSecondaryLink,
+    sortOrder: slide.sortOrder,
+    isActive: slide.isActive
+  }));
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      {/* Hero Section with slide backgrounds, left statistics overlay and right SVG map */}
+      <HeroSection slides={slides} />
+      
+      {/* Quick Navigation Strip (6 cream columns) */}
+      <QuickNavSection />
+      
+      {/* Combined 3-Column main content grid */}
+      <ExploreSection />
+      
+      {/* Dark green metrics ribbon */}
+      <StatsSection />
+      
+      {/* Horizontal visual gallery */}
+      <GalleryPreviewSection />
+    </div>
+  );
+}

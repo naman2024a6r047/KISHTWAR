@@ -1,0 +1,856 @@
+// ══════════════════════════════════════════════════════════════
+// Kishtwar Tourism Portal — Prisma Schema
+// Database: MySQL 8.0+
+// Tables: 36
+// ══════════════════════════════════════════════════════════════
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum UserRole {
+  SUPER_ADMIN
+  CONTRIBUTOR
+  USER
+}
+
+enum ContentStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  PUBLISHED
+  REJECTED
+}
+
+enum MediaStatus {
+  DRAFT
+  SUBMITTED
+  PUBLISHED
+}
+
+enum SavedItemType {
+  BOOKMARK
+  WISHLIST
+}
+
+enum NotificationType {
+  COMMENT
+  LIKE
+  FOLLOW
+  APPROVAL
+  SYSTEM
+  CONTACT
+}
+
+enum ReportReason {
+  SPAM
+  INAPPROPRIATE
+  MISLEADING
+  COPYRIGHT
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  DISMISSED
+}
+
+enum AdPosition {
+  HEADER
+  SIDEBAR
+  BETWEEN_SECTIONS
+  FOOTER
+}
+
+enum ContactRecipientType {
+  ADMIN
+  CONTRIBUTOR
+}
+
+enum SettingValueType {
+  STRING
+  NUMBER
+  BOOLEAN
+  JSON
+}
+
+enum FeaturedSection {
+  PLACES
+  BLOGS
+  VIDEOS
+  EVENTS
+  GALLERY
+  CONTRIBUTORS
+}
+
+// ─────────────────────────────────────────────
+// USER & AUTH TABLES
+// ─────────────────────────────────────────────
+
+model User {
+  id                   Int       @id @default(autoincrement())
+  email                String    @unique @db.VarChar(255)
+  password             String    @db.VarChar(255)
+  name                 String    @db.VarChar(100)
+  username             String    @unique @db.VarChar(50)
+  avatar               String?   @db.VarChar(500)
+  phone                String?   @db.VarChar(20)
+  bio                  String?   @db.Text
+  role                 UserRole  @default(USER)
+  emailVerified        Boolean   @default(false) @map("email_verified")
+  emailVerifyToken     String?   @map("email_verify_token") @db.VarChar(255)
+  emailVerifyExpires   DateTime? @map("email_verify_expires")
+  passwordResetToken   String?   @map("password_reset_token") @db.VarChar(255)
+  passwordResetExpires DateTime? @map("password_reset_expires")
+  isActive             Boolean   @default(true) @map("is_active")
+  lastLoginAt          DateTime? @map("last_login_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  contributorProfile ContributorProfile?
+  sessions           Session[]
+  blogs              Blog[]
+  touristPlaces      TouristPlace[]
+  photos             Photo[]
+  galleries          Gallery[]
+  videos             Video[]
+  events             Event[]
+  comments           Comment[]
+  likes              Like[]
+  placeReviews       PlaceReview[]
+  savedItems         SavedItem[]
+  notifications      Notification[]
+  reports            Report[]
+  activityLogs       ActivityLog[]
+  pageViews          PageView[]
+  contactMessages    ContactMessage[] @relation("ContactRecipient")
+
+  // Follow relations
+  following Follow[] @relation("Follower")
+  followers Follow[] @relation("Following")
+
+  @@index([email])
+  @@index([username])
+  @@index([role])
+  @@index([emailVerifyToken])
+  @@index([passwordResetToken])
+  @@map("users")
+}
+
+model ContributorProfile {
+  id              Int       @id @default(autoincrement())
+  userId          Int       @unique @map("user_id")
+  specialty       String?   @db.VarChar(255)
+  website         String?   @db.VarChar(500)
+  socialFacebook  String?   @map("social_facebook") @db.VarChar(500)
+  socialTwitter   String?   @map("social_twitter") @db.VarChar(500)
+  socialInstagram String?   @map("social_instagram") @db.VarChar(500)
+  socialYoutube   String?   @map("social_youtube") @db.VarChar(500)
+  verified        Boolean   @default(false)
+  approvedAt      DateTime? @map("approved_at")
+  totalViews      Int       @default(0) @map("total_views")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("contributor_profiles")
+}
+
+model Session {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  refreshToken String   @unique @map("refresh_token") @db.VarChar(500)
+  expiresAt    DateTime @map("expires_at")
+  userAgent    String?  @map("user_agent") @db.VarChar(500)
+  ipAddress    String?  @map("ip_address") @db.VarChar(45)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([refreshToken])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+// ─────────────────────────────────────────────
+// TOURIST PLACES TABLES
+// ─────────────────────────────────────────────
+
+model PlaceCategory {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  slug        String   @unique @db.VarChar(100)
+  icon        String?  @db.VarChar(50)
+  description String?  @db.Text
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  places TouristPlace[]
+
+  @@map("place_categories")
+}
+
+model TouristPlace {
+  id               Int           @id @default(autoincrement())
+  name             String        @db.VarChar(200)
+  slug             String        @unique @db.VarChar(200)
+  description      String        @db.Text
+  shortDescription String?       @map("short_description") @db.VarChar(500)
+  history          String?       @db.Text
+  featuredImage    String        @map("featured_image") @db.VarChar(500)
+  gpsLat           Decimal?      @map("gps_lat") @db.Decimal(10, 8)
+  gpsLng           Decimal?      @map("gps_lng") @db.Decimal(11, 8)
+  altitude         String?       @db.VarChar(50)
+  visitingTime     String?       @map("visiting_time") @db.VarChar(200)
+  entryFee         String?       @map("entry_fee") @db.VarChar(200)
+  bestSeason       String?       @map("best_season") @db.VarChar(200)
+  travelTips       String?       @map("travel_tips") @db.Text
+  howToReach       String?       @map("how_to_reach") @db.Text
+  nearbyHotels     String?       @map("nearby_hotels") @db.Text
+  categoryId       Int           @map("category_id")
+  contributorId    Int           @map("contributor_id")
+  status           ContentStatus @default(DRAFT)
+  featured         Boolean       @default(false)
+  averageRating    Decimal       @default(0) @map("average_rating") @db.Decimal(3, 2)
+  reviewCount      Int           @default(0) @map("review_count")
+  viewCount        Int           @default(0) @map("view_count")
+  metaTitle        String?       @map("meta_title") @db.VarChar(70)
+  metaDescription  String?       @map("meta_description") @db.VarChar(160)
+  ogImage          String?       @map("og_image") @db.VarChar(500)
+  canonicalUrl     String?       @map("canonical_url") @db.VarChar(500)
+  publishedAt      DateTime?     @map("published_at")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  category    PlaceCategory @relation(fields: [categoryId], references: [id])
+  contributor User          @relation(fields: [contributorId], references: [id])
+  images      PlaceImage[]
+  reviews     PlaceReview[]
+  comments    Comment[]
+  likes       Like[]
+  savedItems  SavedItem[]
+
+  @@index([slug])
+  @@index([categoryId])
+  @@index([contributorId])
+  @@index([status])
+  @@index([featured])
+  @@index([publishedAt])
+  @@fulltext([name, description])
+  @@map("tourist_places")
+}
+
+model PlaceImage {
+  id        Int      @id @default(autoincrement())
+  placeId   Int      @map("place_id")
+  url       String   @db.VarChar(500)
+  publicId  String   @map("public_id") @db.VarChar(255)
+  caption   String?  @db.VarChar(300)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  place TouristPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@map("place_images")
+}
+
+model PlaceReview {
+  id        Int      @id @default(autoincrement())
+  placeId   Int      @map("place_id")
+  userId    Int      @map("user_id")
+  rating    Int      @db.TinyInt
+  title     String?  @db.VarChar(200)
+  content   String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  place TouristPlace @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user  User         @relation(fields: [userId], references: [id])
+
+  @@unique([placeId, userId])
+  @@map("place_reviews")
+}
+
+// ─────────────────────────────────────────────
+// BLOG TABLES
+// ─────────────────────────────────────────────
+
+model BlogCategory {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  slug        String   @unique @db.VarChar(100)
+  description String?  @db.Text
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  blogs Blog[]
+
+  @@map("blog_categories")
+}
+
+model Tag {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(50)
+  slug      String    @unique @db.VarChar(50)
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  blogs BlogTag[]
+
+  @@map("tags")
+}
+
+model Blog {
+  id              Int           @id @default(autoincrement())
+  title           String        @db.VarChar(300)
+  slug            String        @unique @db.VarChar(300)
+  content         String        @db.LongText
+  excerpt         String?       @db.VarChar(500)
+  featuredImage   String?       @map("featured_image") @db.VarChar(500)
+  readingTime     Int?          @map("reading_time")
+  categoryId      Int           @map("category_id")
+  authorId        Int           @map("author_id")
+  status          ContentStatus @default(DRAFT)
+  featured        Boolean       @default(false)
+  viewCount       Int           @default(0) @map("view_count")
+  likeCount       Int           @default(0) @map("like_count")
+  commentCount    Int           @default(0) @map("comment_count")
+  metaTitle       String?       @map("meta_title") @db.VarChar(70)
+  metaDescription String?       @map("meta_description") @db.VarChar(160)
+  ogImage         String?       @map("og_image") @db.VarChar(500)
+  canonicalUrl    String?       @map("canonical_url") @db.VarChar(500)
+  autoSaveContent String?       @map("auto_save_content") @db.LongText
+  autoSaveAt      DateTime?     @map("auto_save_at")
+  publishedAt     DateTime?     @map("published_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  category BlogCategory @relation(fields: [categoryId], references: [id])
+  author   User         @relation(fields: [authorId], references: [id])
+  tags     BlogTag[]
+  comments Comment[]
+  likes    Like[]
+  savedItems SavedItem[]
+
+  @@index([slug])
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([status])
+  @@index([featured])
+  @@index([publishedAt])
+  @@fulltext([title, content])
+  @@map("blogs")
+}
+
+model BlogTag {
+  blogId Int @map("blog_id")
+  tagId  Int @map("tag_id")
+
+  // Relations
+  blog Blog @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([blogId, tagId])
+  @@map("blog_tags")
+}
+
+// ─────────────────────────────────────────────
+// MEDIA TABLES
+// ─────────────────────────────────────────────
+
+model PhotoCategory {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(100)
+  slug      String   @unique @db.VarChar(100)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  photos Photo[]
+
+  @@map("photo_categories")
+}
+
+model Photo {
+  id              Int         @id @default(autoincrement())
+  url             String      @db.VarChar(500)
+  publicId        String      @map("public_id") @db.VarChar(255)
+  thumbnailUrl    String?     @map("thumbnail_url") @db.VarChar(500)
+  title           String      @db.VarChar(200)
+  caption         String?     @db.Text
+  categoryId      Int         @map("category_id")
+  contributorId   Int         @map("contributor_id")
+  width           Int?
+  height          Int?
+  downloadCount   Int         @default(0) @map("download_count")
+  likeCount       Int         @default(0) @map("like_count")
+  featured        Boolean     @default(false)
+  status          MediaStatus @default(DRAFT)
+  metaTitle       String?     @map("meta_title") @db.VarChar(70)
+  metaDescription String?     @map("meta_description") @db.VarChar(160)
+  createdAt       DateTime    @default(now()) @map("created_at")
+
+  // Relations
+  category    PhotoCategory  @relation(fields: [categoryId], references: [id])
+  contributor User           @relation(fields: [contributorId], references: [id])
+  galleries   GalleryPhoto[]
+  comments    Comment[]
+  likes       Like[]
+
+  @@map("photos")
+}
+
+model Gallery {
+  id            Int         @id @default(autoincrement())
+  name          String      @db.VarChar(200)
+  slug          String      @unique @db.VarChar(200)
+  description   String?     @db.Text
+  coverImage    String?     @map("cover_image") @db.VarChar(500)
+  contributorId Int         @map("contributor_id")
+  status        MediaStatus @default(DRAFT)
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  // Relations
+  contributor User           @relation(fields: [contributorId], references: [id])
+  photos      GalleryPhoto[]
+
+  @@map("galleries")
+}
+
+model GalleryPhoto {
+  galleryId Int @map("gallery_id")
+  photoId   Int @map("photo_id")
+  sortOrder Int @default(0) @map("sort_order")
+
+  // Relations
+  gallery Gallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+  photo   Photo   @relation(fields: [photoId], references: [id], onDelete: Cascade)
+
+  @@id([galleryId, photoId])
+  @@map("gallery_photos")
+}
+
+model VideoCategory {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(100)
+  slug      String   @unique @db.VarChar(100)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  videos Video[]
+
+  @@map("video_categories")
+}
+
+model Video {
+  id              Int         @id @default(autoincrement())
+  youtubeUrl      String      @map("youtube_url") @db.VarChar(500)
+  youtubeId       String      @map("youtube_id") @db.VarChar(20)
+  thumbnail       String?     @db.VarChar(500)
+  title           String      @db.VarChar(300)
+  description     String?     @db.Text
+  categoryId      Int         @map("category_id")
+  contributorId   Int         @map("contributor_id")
+  featured        Boolean     @default(false)
+  status          MediaStatus @default(DRAFT)
+  viewCount       Int         @default(0) @map("view_count")
+  metaTitle       String?     @map("meta_title") @db.VarChar(70)
+  metaDescription String?     @map("meta_description") @db.VarChar(160)
+  createdAt       DateTime    @default(now()) @map("created_at")
+
+  // Relations
+  category    VideoCategory @relation(fields: [categoryId], references: [id])
+  contributor User          @relation(fields: [contributorId], references: [id])
+
+  @@map("videos")
+}
+
+// ─────────────────────────────────────────────
+// EVENTS TABLES
+// ─────────────────────────────────────────────
+
+model EventCategory {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(100)
+  slug      String   @unique @db.VarChar(100)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  events Event[]
+
+  @@map("event_categories")
+}
+
+model Event {
+  id               Int           @id @default(autoincrement())
+  name             String        @db.VarChar(300)
+  slug             String        @unique @db.VarChar(300)
+  banner           String?       @db.VarChar(500)
+  description      String        @db.Text
+  shortDescription String?       @map("short_description") @db.VarChar(500)
+  startDate        DateTime      @map("start_date") @db.Date
+  endDate          DateTime?     @map("end_date") @db.Date
+  startTime        String?       @map("start_time") @db.VarChar(10)
+  location         String?       @db.VarChar(300)
+  gpsLat           Decimal?      @map("gps_lat") @db.Decimal(10, 8)
+  gpsLng           Decimal?      @map("gps_lng") @db.Decimal(11, 8)
+  registrationLink String?       @map("registration_link") @db.VarChar(500)
+  categoryId       Int           @map("category_id")
+  contributorId    Int           @map("contributor_id")
+  status           ContentStatus @default(DRAFT)
+  featured         Boolean       @default(false)
+  metaTitle        String?       @map("meta_title") @db.VarChar(70)
+  metaDescription  String?       @map("meta_description") @db.VarChar(160)
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  category    EventCategory @relation(fields: [categoryId], references: [id])
+  contributor User          @relation(fields: [contributorId], references: [id])
+  savedItems  SavedItem[]
+
+  @@map("events")
+}
+
+// ─────────────────────────────────────────────
+// SOCIAL / INTERACTION TABLES
+// ─────────────────────────────────────────────
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String   @db.Text
+  userId    Int      @map("user_id")
+  parentId  Int?     @map("parent_id")
+  blogId    Int?     @map("blog_id")
+  placeId   Int?     @map("place_id")
+  photoId   Int?     @map("photo_id")
+  likeCount Int      @default(0) @map("like_count")
+  isEdited  Boolean  @default(false) @map("is_edited")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user     User          @relation(fields: [userId], references: [id])
+  parent   Comment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies  Comment[]     @relation("CommentReplies")
+  blog     Blog?         @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  place    TouristPlace? @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  photo    Photo?        @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  likes    Like[]
+
+  @@index([userId])
+  @@index([blogId])
+  @@index([placeId])
+  @@index([photoId])
+  @@index([parentId])
+  @@map("comments")
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  blogId    Int?     @map("blog_id")
+  placeId   Int?     @map("place_id")
+  photoId   Int?     @map("photo_id")
+  commentId Int?     @map("comment_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blog    Blog?         @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  place   TouristPlace? @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  photo   Photo?        @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  comment Comment?      @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, blogId])
+  @@unique([userId, placeId])
+  @@unique([userId, photoId])
+  @@unique([userId, commentId])
+  @@map("likes")
+}
+
+model Follow {
+  id          Int      @id @default(autoincrement())
+  followerId  Int      @map("follower_id")
+  followingId Int      @map("following_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  follower  User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model SavedItem {
+  id        Int           @id @default(autoincrement())
+  userId    Int           @map("user_id")
+  blogId    Int?          @map("blog_id")
+  placeId   Int?          @map("place_id")
+  eventId   Int?          @map("event_id")
+  type      SavedItemType @default(BOOKMARK)
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blog  Blog?         @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  place TouristPlace? @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  event Event?        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("saved_items")
+}
+
+model Notification {
+  id            Int              @id @default(autoincrement())
+  userId        Int              @map("user_id")
+  type          NotificationType
+  title         String           @db.VarChar(200)
+  message       String?          @db.Text
+  isRead        Boolean          @default(false) @map("is_read")
+  referenceId   Int?             @map("reference_id")
+  referenceType String?          @map("reference_type") @db.VarChar(50)
+  createdAt     DateTime         @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt])
+  @@map("notifications")
+}
+
+model Report {
+  id            Int          @id @default(autoincrement())
+  userId        Int          @map("user_id")
+  reason        ReportReason
+  description   String?      @db.Text
+  referenceId   Int          @map("reference_id")
+  referenceType String       @map("reference_type") @db.VarChar(50)
+  status        ReportStatus @default(PENDING)
+  adminNotes    String?      @map("admin_notes") @db.Text
+  resolvedAt    DateTime?    @map("resolved_at")
+  createdAt     DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("reports")
+}
+
+// ─────────────────────────────────────────────
+// CONTACT & COMMUNICATION TABLES
+// ─────────────────────────────────────────────
+
+model ContactMessage {
+  id            Int                  @id @default(autoincrement())
+  name          String               @db.VarChar(100)
+  email         String               @db.VarChar(255)
+  phone         String?              @db.VarChar(20)
+  subject       String?              @db.VarChar(300)
+  message       String               @db.Text
+  recipientId   Int?                 @map("recipient_id")
+  recipientType ContactRecipientType @default(ADMIN) @map("recipient_type")
+  isRead        Boolean              @default(false) @map("is_read")
+  replied       Boolean              @default(false)
+  createdAt     DateTime             @default(now()) @map("created_at")
+
+  // Relations
+  recipient User? @relation("ContactRecipient", fields: [recipientId], references: [id])
+
+  @@map("contact_messages")
+}
+
+model NewsletterSubscriber {
+  id             Int       @id @default(autoincrement())
+  email          String    @unique @db.VarChar(255)
+  name           String?   @db.VarChar(100)
+  isActive       Boolean   @default(true) @map("is_active")
+  subscribedAt   DateTime  @default(now()) @map("subscribed_at")
+  unsubscribedAt DateTime? @map("unsubscribed_at")
+
+  @@map("newsletter_subscribers")
+}
+
+// ─────────────────────────────────────────────
+// HOMEPAGE MANAGEMENT TABLES
+// ─────────────────────────────────────────────
+
+model HomepageSection {
+  id         Int      @id @default(autoincrement())
+  sectionKey String   @unique @map("section_key") @db.VarChar(50)
+  title      String?  @db.VarChar(200)
+  subtitle   String?  @db.VarChar(500)
+  isVisible  Boolean  @default(true) @map("is_visible")
+  sortOrder  Int      @default(0) @map("sort_order")
+  config     Json?
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("homepage_sections")
+}
+
+model HeroSlide {
+  id                Int      @id @default(autoincrement())
+  title             String   @db.VarChar(200)
+  subtitle          String?  @db.VarChar(500)
+  backgroundImage   String   @map("background_image") @db.VarChar(500)
+  backgroundVideoUrl String? @map("background_video_url") @db.VarChar(500)
+  ctaText           String?  @map("cta_text") @db.VarChar(100)
+  ctaLink           String?  @map("cta_link") @db.VarChar(500)
+  ctaSecondaryText  String?  @map("cta_secondary_text") @db.VarChar(100)
+  ctaSecondaryLink  String?  @map("cta_secondary_link") @db.VarChar(500)
+  sortOrder         Int      @default(0) @map("sort_order")
+  isActive          Boolean  @default(true) @map("is_active")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  @@map("hero_slides")
+}
+
+model FeaturedContent {
+  id          Int             @id @default(autoincrement())
+  section     FeaturedSection
+  referenceId Int             @map("reference_id")
+  sortOrder   Int             @default(0) @map("sort_order")
+  isActive    Boolean         @default(true) @map("is_active")
+  createdAt   DateTime        @default(now()) @map("created_at")
+
+  @@unique([section, referenceId])
+  @@map("featured_content")
+}
+
+// ─────────────────────────────────────────────
+// SYSTEM / ADMIN TABLES
+// ─────────────────────────────────────────────
+
+model SiteSetting {
+  id           Int              @id @default(autoincrement())
+  settingKey   String           @unique @map("setting_key") @db.VarChar(100)
+  settingValue String?          @map("setting_value") @db.Text
+  settingGroup String           @default("general") @map("setting_group") @db.VarChar(50)
+  valueType    SettingValueType @default(STRING) @map("value_type")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}
+
+model Advertisement {
+  id              Int        @id @default(autoincrement())
+  title           String     @db.VarChar(200)
+  imageUrl        String     @map("image_url") @db.VarChar(500)
+  linkUrl         String?    @map("link_url") @db.VarChar(500)
+  position        AdPosition
+  isActive        Boolean    @default(true) @map("is_active")
+  startDate       DateTime?  @map("start_date") @db.Date
+  endDate         DateTime?  @map("end_date") @db.Date
+  clickCount      Int        @default(0) @map("click_count")
+  impressionCount Int        @default(0) @map("impression_count")
+  createdAt       DateTime   @default(now()) @map("created_at")
+
+  @@map("advertisements")
+}
+
+model ActivityLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int?     @map("user_id")
+  action     String   @db.VarChar(100)
+  entityType String?  @map("entity_type") @db.VarChar(50)
+  entityId   Int?     @map("entity_id")
+  metadata   Json?
+  ipAddress  String?  @map("ip_address") @db.VarChar(45)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+  @@map("activity_logs")
+}
+
+model PageView {
+  id         Int      @id @default(autoincrement())
+  path       String   @db.VarChar(500)
+  entityType String?  @map("entity_type") @db.VarChar(50)
+  entityId   Int?     @map("entity_id")
+  userId     Int?     @map("user_id")
+  sessionId  String?  @map("session_id") @db.VarChar(100)
+  referrer   String?  @db.VarChar(500)
+  userAgent  String?  @map("user_agent") @db.VarChar(500)
+  country    String?  @db.VarChar(50)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId, createdAt])
+  @@index([path, createdAt])
+  @@index([createdAt])
+  @@map("page_views")
+}
+
+model SeoMetadata {
+  id             Int      @id @default(autoincrement())
+  pagePath       String   @unique @map("page_path") @db.VarChar(500)
+  metaTitle      String?  @map("meta_title") @db.VarChar(70)
+  metaDescription String? @map("meta_description") @db.VarChar(160)
+  ogTitle        String?  @map("og_title") @db.VarChar(100)
+  ogDescription  String?  @map("og_description") @db.VarChar(200)
+  ogImage        String?  @map("og_image") @db.VarChar(500)
+  canonicalUrl   String?  @map("canonical_url") @db.VarChar(500)
+  structuredData Json?    @map("structured_data")
+  noIndex        Boolean  @default(false) @map("no_index")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("seo_metadata")
+}
+
+// ─────────────────────────────────────────────
+// DEDICATED LANDING PAGES TABLE
+// ─────────────────────────────────────────────
+
+model LandingPage {
+  id              Int      @id @default(autoincrement())
+  slug            String   @unique @db.VarChar(200)
+  title           String   @db.VarChar(300)
+  subtitle        String?  @db.VarChar(500)
+  heroImage       String?  @map("hero_image") @db.VarChar(500)
+  content         String   @db.LongText
+  sidebarContent  String?  @map("sidebar_content") @db.Text
+  galleryImages   Json?    @map("gallery_images")
+  videoUrls       Json?    @map("video_urls")
+  gpsLat          Decimal? @map("gps_lat") @db.Decimal(10, 8)
+  gpsLng          Decimal? @map("gps_lng") @db.Decimal(11, 8)
+  relatedPlaces   Json?    @map("related_places")
+  timelineData    Json?    @map("timeline_data")
+  metaTitle       String?  @map("meta_title") @db.VarChar(70)
+  metaDescription String?  @map("meta_description") @db.VarChar(160)
+  ogImage         String?  @map("og_image") @db.VarChar(500)
+  isPublished     Boolean  @default(true) @map("is_published")
+  sortOrder       Int      @default(0) @map("sort_order")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("landing_pages")
+}
