@@ -11,11 +11,15 @@ import GalleryPreviewSection from "@/components/sections/GalleryPreviewSection";
 export const revalidate = 3600; // Revalidate every hour
 
 export default async function HomePage() {
-  // Fetch active hero slides for the background slideshow/images
-  const dbSlides = await prisma.heroSlide.findMany({
-    where: { isActive: true },
-    orderBy: { sortOrder: "asc" },
-  });
+  let dbSlides: any[] = [];
+  try {
+    dbSlides = await prisma.heroSlide.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+    });
+  } catch (error) {
+    console.warn("Failed to fetch hero slides at build/render time (this is normal if database is unreachable in the build container):", error);
+  }
   
   const slides: HeroSlideData[] = dbSlides.map(slide => ({
     id: slide.id,
