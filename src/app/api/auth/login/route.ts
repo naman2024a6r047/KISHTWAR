@@ -5,7 +5,6 @@ import {
   generateAccessToken,
   generateRefreshToken,
   createSession,
-  setAuthCookies,
 } from "@/lib/auth";
 import { loginSchema } from "@/lib/validations";
 import { checkRateLimit, AUTH_RATE_LIMIT } from "@/lib/rate-limit";
@@ -98,21 +97,38 @@ export async function POST(request: NextRequest) {
       data: { lastLoginAt: new Date() },
     });
 
-    // Set cookies
-    await setAuthCookies(accessToken, refreshToken);
-
     // Return user (without password)
     const { password: _, isActive: __, ...safeUser } = user;
 
-    return NextResponse.json({
+    // Build response and set cookies directly on it
+    const isProduction = process.env.NODE_ENV === "production";
+    const response = NextResponse.json({
       success: true,
       user: safeUser,
       message: "Login successful",
     });
-  } catch (error) {
+
+    response.cookies.set("access_token", accessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 15 * 60, // 15 minutes
+    });
+
+    response.cookies.set("refresh_token", refreshToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+    });
+
+    return response;
+  } catch (error: any) {
     console.error("Login error:", error);
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
+      { success: false, error: error.message || "Internal server error" },
       { status: 500 }
     );
   }

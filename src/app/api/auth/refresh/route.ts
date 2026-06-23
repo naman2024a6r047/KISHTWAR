@@ -1,18 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
-  getRefreshToken,
   verifyToken,
   generateAccessToken,
   generateRefreshToken,
   createSession,
   deleteSession,
-  setAuthCookies,
 } from "@/lib/auth";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    const refreshTokenValue = await getRefreshToken();
+    const refreshTokenValue = request.cookies.get("refresh_token")?.value;
 
     if (!refreshTokenValue) {
       return NextResponse.json(
@@ -82,13 +80,30 @@ export async function POST() {
     // Create new session
     await createSession(user.id, newRefreshToken);
 
-    // Set new cookies
-    await setAuthCookies(newAccessToken, newRefreshToken);
-
-    return NextResponse.json({
+    // Build response and set cookies directly on it
+    const isProduction = process.env.NODE_ENV === "production";
+    const response = NextResponse.json({
       success: true,
       message: "Token refreshed successfully",
     });
+
+    response.cookies.set("access_token", newAccessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 15 * 60, // 15 minutes
+    });
+
+    response.cookies.set("refresh_token", newRefreshToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+    });
+
+    return response;
   } catch (error) {
     console.error("Refresh error:", error);
     return NextResponse.json(

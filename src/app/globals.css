@@ -22,6 +22,7 @@
   --kishtwar-green-700: #0f3820;
   --kishtwar-green-800: #0a2916;
   --kishtwar-green-900: #051a0c;
+  --kishtwar-green-950: #021007;
 
   /* Cream / Off-white */
   --kishtwar-cream: #faf8f0;
@@ -101,6 +102,7 @@
   --color-kishtwar-green-700: var(--kishtwar-green-700);
   --color-kishtwar-green-800: var(--kishtwar-green-800);
   --color-kishtwar-green-900: var(--kishtwar-green-900);
+  --color-kishtwar-green-950: var(--kishtwar-green-950);
   --color-kishtwar-cream: var(--kishtwar-cream);
   --color-kishtwar-cream-100: var(--kishtwar-cream-100);
   --color-kishtwar-cream-200: var(--kishtwar-cream-200);

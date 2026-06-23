@@ -1,33 +1,63 @@
-import { NextResponse } from "next/server";
-import {
-  getRefreshToken,
-  deleteSession,
-  clearAuthCookies,
-} from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { deleteSession } from "@/lib/auth";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    const refreshToken = await getRefreshToken();
+    const refreshToken = request.cookies.get("refresh_token")?.value;
 
     if (refreshToken) {
       // Delete the session from database
       await deleteSession(refreshToken);
     }
 
-    // Clear cookies regardless
-    await clearAuthCookies();
-
-    return NextResponse.json({
+    // Build response and clear cookies directly on it
+    const response = NextResponse.json({
       success: true,
       message: "Logged out successfully",
     });
+
+    response.cookies.set("access_token", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
+
+    response.cookies.set("refresh_token", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
+
+    return response;
   } catch (error) {
     console.error("Logout error:", error);
+
     // Still clear cookies even if there's an error
-    await clearAuthCookies();
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: "Logged out",
     });
+
+    response.cookies.set("access_token", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
+
+    response.cookies.set("refresh_token", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
+
+    return response;
   }
 }
