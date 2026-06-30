@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { HeroSlideData } from "@/types";
-import { Users, Maximize, Mountain, MessageSquare, Calendar, ChevronRight, PlayCircle } from "lucide-react";
+import { Users, Maximize, Mountain, MessageSquare, Calendar, ChevronLeft, ChevronRight, PlayCircle } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
@@ -16,6 +16,15 @@ export default function HeroSection({ slides }: HeroSectionProps) {
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   const minSwipeDistance = 50;
+
+  // Graceful fallback for broken images
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const target = e.currentTarget;
+    target.style.display = "none";
+    if (target.parentElement) {
+      target.parentElement.style.background = "linear-gradient(135deg, #0a2916 0%, #134328 50%, #1a5c38 100%)";
+    }
+  };
 
   const handleNext = useCallback(() => {
     if (!slides || slides.length === 0) return;
@@ -100,6 +109,7 @@ export default function HeroSection({ slides }: HeroSectionProps) {
                 style={{
                   transform: index === currentIndex ? "scale(1.05) translate(1px, 1px)" : "scale(1.0)"
                 }}
+                onError={handleImageError}
               />
             </div>
           ))
@@ -115,6 +125,7 @@ export default function HeroSection({ slides }: HeroSectionProps) {
               src="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&q=80&w=1920"
               alt="Default Kishtwar Landscape"
               className="w-full h-full object-cover scale-105"
+              onError={handleImageError}
             />
           </div>
         )}
@@ -298,6 +309,26 @@ export default function HeroSection({ slides }: HeroSectionProps) {
           </motion.div>
         </div>
       </div>
+
+      {/* Previous / Next Arrow Buttons (visible on desktop, hidden on mobile where swipe works) */}
+      {slides && slides.length > 1 && (
+        <>
+          <button
+            onClick={handlePrev}
+            className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-30 hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm border border-white/10 text-white/80 hover:bg-black/50 hover:text-white transition-all duration-200 cursor-pointer"
+            aria-label="Previous slide"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button
+            onClick={handleNext}
+            className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-30 hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm border border-white/10 text-white/80 hover:bg-black/50 hover:text-white transition-all duration-200 cursor-pointer"
+            aria-label="Next slide"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </>
+      )}
 
       {/* Swipe Indicators */}
       {slides && slides.length > 1 && (

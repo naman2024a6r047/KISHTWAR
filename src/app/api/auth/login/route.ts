@@ -25,8 +25,11 @@ export async function POST(request: NextRequest) {
     const parsed = loginSchema.safeParse(body);
 
     if (!parsed.success) {
+      const firstIssue = parsed.error?.issues?.[0]?.message 
+        ?? parsed.error?.message 
+        ?? "Validation failed";
       return NextResponse.json(
-        { success: false, error: parsed.error.issues[0]?.message || "Validation failed" },
+        { success: false, error: firstIssue },
         { status: 400 }
       );
     }

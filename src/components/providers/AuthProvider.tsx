@@ -17,7 +17,7 @@ interface AuthContextType {
   user: SafeUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; user?: SafeUser }>;
   register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (res.ok && data.success) {
         setUser(data.user);
-        return { success: true };
+        return { success: true, user: data.user };
       }
 
       return { success: false, error: data.error || "Login failed" };

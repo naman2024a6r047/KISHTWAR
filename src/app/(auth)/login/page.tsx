@@ -28,7 +28,17 @@ export default function LoginPage() {
     try {
       const res = await login(email, password);
       if (res.success) {
-        router.push(redirect);
+        // Role-based redirect: if no explicit redirect was provided,
+        // send admins to /admin and contributors to /contributor
+        let destination = redirect;
+        if (redirect === "/" && res.user) {
+          if (res.user.role === "SUPER_ADMIN") {
+            destination = "/admin";
+          } else if (res.user.role === "CONTRIBUTOR") {
+            destination = "/contributor";
+          }
+        }
+        router.push(destination);
         router.refresh();
       } else {
         setError(res.error || "Invalid email or password.");
