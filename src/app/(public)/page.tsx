@@ -9,6 +9,7 @@ import StatsSection from "@/components/sections/StatsSection";
 import GalleryPreviewSection from "@/components/sections/GalleryPreviewSection";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function HomePage() {
   let dbSlides: any[] = [];

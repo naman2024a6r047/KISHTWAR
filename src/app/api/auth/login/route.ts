@@ -5,6 +5,7 @@ import {
   generateAccessToken,
   generateRefreshToken,
   createSession,
+  isSecureRequest,
 } from "@/lib/auth";
 import { loginSchema } from "@/lib/validations";
 import { checkRateLimit, AUTH_RATE_LIMIT } from "@/lib/rate-limit";
@@ -104,7 +105,7 @@ export async function POST(request: NextRequest) {
     const { password: _, isActive: __, ...safeUser } = user;
 
     // Build response and set cookies directly on it
-    const isProduction = process.env.NODE_ENV === "production";
+    const secure = isSecureRequest(request);
     const response = NextResponse.json({
       success: true,
       user: safeUser,
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set("access_token", accessToken, {
       httpOnly: true,
-      secure: isProduction,
+      secure,
       sameSite: "lax",
       path: "/",
       maxAge: 15 * 60, // 15 minutes
@@ -121,7 +122,7 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set("refresh_token", refreshToken, {
       httpOnly: true,
-      secure: isProduction,
+      secure,
       sameSite: "lax",
       path: "/",
       maxAge: 7 * 24 * 60 * 60, // 7 days

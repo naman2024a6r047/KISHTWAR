@@ -15,6 +15,31 @@ const ACCESS_TOKEN_EXPIRY = process.env.JWT_ACCESS_EXPIRY || "15m";
 const REFRESH_TOKEN_EXPIRY = process.env.JWT_REFRESH_EXPIRY || "7d";
 
 // ─────────────────────────────────────────────
+// Secure Cookie Detection
+// ─────────────────────────────────────────────
+
+/**
+ * Determine whether cookies should be set with the `Secure` flag.
+ * 
+ * On Hostinger (and similar hosts), TLS is terminated at the reverse proxy.
+ * The internal connection from the proxy to Next.js is plain HTTP, so
+ * `NODE_ENV === "production"` alone would cause the browser to reject cookies
+ * when the Set-Cookie response travels over the (internal) HTTP hop.
+ *
+ * We solve this by also checking the `x-forwarded-proto` header that the
+ * reverse proxy sets. If the *original* client request was HTTPS, we can
+ * safely mark the cookie as Secure.
+ */
+export function isSecureRequest(request: { headers: { get(name: string): string | null } }): boolean {
+  if (process.env.NODE_ENV !== "production") return false;
+  const proto = request.headers.get("x-forwarded-proto");
+  // If behind a reverse proxy that sets x-forwarded-proto, trust it
+  if (proto) return proto.split(",")[0].trim() === "https";
+  // Fallback: if in production and no proxy header, default to secure
+  return true;
+}
+
+// ─────────────────────────────────────────────
 // Password Hashing
 // ─────────────────────────────────────────────
 

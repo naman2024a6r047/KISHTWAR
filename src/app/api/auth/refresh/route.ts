@@ -6,6 +6,7 @@ import {
   generateRefreshToken,
   createSession,
   deleteSession,
+  isSecureRequest,
 } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest) {
     await createSession(user.id, newRefreshToken);
 
     // Build response and set cookies directly on it
-    const isProduction = process.env.NODE_ENV === "production";
+    const secure = isSecureRequest(request);
     const response = NextResponse.json({
       success: true,
       message: "Token refreshed successfully",
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set("access_token", newAccessToken, {
       httpOnly: true,
-      secure: isProduction,
+      secure,
       sameSite: "lax",
       path: "/",
       maxAge: 15 * 60, // 15 minutes
@@ -97,7 +98,7 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set("refresh_token", newRefreshToken, {
       httpOnly: true,
-      secure: isProduction,
+      secure,
       sameSite: "lax",
       path: "/",
       maxAge: 7 * 24 * 60 * 60, // 7 days
