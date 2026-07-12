@@ -754,3 +754,4 @@ ALTER TABLE `activity_logs` ADD CONSTRAINT `activity_logs_user_id_fkey` FOREIGN 
 
 -- AddForeignKey
 ALTER TABLE `page_views` ADD CONSTRAINT `page_views_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ 
