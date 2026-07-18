@@ -218,6 +218,7 @@ export async function requireAuth() {
   if (!user) {
     const { redirect } = await import("next/navigation");
     redirect("/login");
+    throw new Error("Authentication required");
   }
   return user;
 }
@@ -227,6 +228,7 @@ export async function requireRole(roles: string[]) {
   if (!roles.includes(user.role)) {
     const { redirect } = await import("next/navigation");
     redirect("/");
+    throw new Error("Insufficient permissions");
   }
   return user;
 }
