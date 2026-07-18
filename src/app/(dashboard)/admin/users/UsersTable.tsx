@@ -82,7 +82,7 @@ export default function UsersTable({ initialUsers }: UsersTableProps) {
         const res = await verifyUserEmail(userId);
         if (res.success) {
           setUsers((prev) =>
-            prev.map((u) => (u.id === userId ? { ...u, emailVerified: new Date() } : u))
+            prev.map((u) => (u.id === userId ? { ...u, emailVerified: true } : u))
           );
           triggerAlert(res.message || "Email verified successfully.", "success");
           router.refresh();

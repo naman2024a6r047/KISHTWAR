@@ -274,7 +274,7 @@ export async function verifyUserEmail(targetUserId: number): Promise<ApiResponse
 
     await prisma.user.update({
       where: { id: targetUserId },
-      data: { emailVerified: new Date() },
+      data: { emailVerified: true },
     });
 
     await logAdminAction(admin.id, "user.email_verify", "User", targetUserId, {
