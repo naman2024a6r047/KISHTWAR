@@ -124,7 +124,7 @@ export default function BlogForm({ categories, initialData }: BlogFormProps) {
               onChange={(e) => setTitle(e.target.value)}
               required
               placeholder="e.g. Exploring the Meadows of Dachhan"
-              className="text-sm bg-white border border-kishtwar-cream-200 focus:border-kishtwar-green-900 outline-none rounded-xl px-4 py-2.5 text-gray-750 focus:ring-1 focus:ring-kishtwar-green-900"
+              className="text-sm bg-white border border-kishtwar-cream-200 focus:border-kishtwar-green-900 outline-none rounded-xl px-4 py-2.5 text-gray-700 focus:ring-1 focus:ring-kishtwar-green-900"
             />
           </div>
 
@@ -135,16 +135,21 @@ export default function BlogForm({ categories, initialData }: BlogFormProps) {
             </label>
             <select
               id="category"
-              value={categoryId}
+              value={String(categoryId)}
               onChange={(e) => setCategoryId(e.target.value)}
               required
-              className="text-sm bg-white border border-kishtwar-cream-200 focus:border-kishtwar-green-900 outline-none rounded-xl px-3 py-2.5 text-gray-750 focus:ring-1 focus:ring-kishtwar-green-900 cursor-pointer"
+              className="text-sm bg-white border border-kishtwar-cream-200 focus:border-kishtwar-green-900 outline-none rounded-xl px-3 py-2.5 text-gray-700 focus:ring-1 focus:ring-kishtwar-green-900 cursor-pointer"
             >
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
+              <option value="" disabled>Select a Category</option>
+              {categories && categories.length > 0 ? (
+                categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))
+              ) : (
+                <option value="" disabled>No categories available</option>
+              )}
             </select>
           </div>
 
@@ -158,7 +163,7 @@ export default function BlogForm({ categories, initialData }: BlogFormProps) {
               value={excerpt}
               onChange={(e) => setExcerpt(e.target.value)}
               placeholder="A brief summary shown in lists and preview cards. Leaving this empty will auto-generate one from your content."
-              className="text-sm bg-white border border-kishtwar-cream-200 focus:border-kishtwar-green-900 outline-none rounded-xl px-4 py-2.5 min-h-[70px] text-gray-750 focus:ring-1 focus:ring-kishtwar-green-900"
+              className="text-sm bg-white border border-kishtwar-cream-200 focus:border-kishtwar-green-900 outline-none rounded-xl px-4 py-2.5 min-h-[70px] text-gray-700 focus:ring-1 focus:ring-kishtwar-green-900"
             />
           </div>
 
@@ -173,7 +178,7 @@ export default function BlogForm({ categories, initialData }: BlogFormProps) {
               value={featuredImage}
               onChange={(e) => setFeaturedImage(e.target.value)}
               placeholder="Paste a link to your cover photo (Cloudinary, Unsplash, etc.)"
-              className="text-sm bg-white border border-kishtwar-cream-200 focus:border-kishtwar-green-900 outline-none rounded-xl px-4 py-2.5 text-gray-750 focus:ring-1 focus:ring-kishtwar-green-900"
+              className="text-sm bg-white border border-kishtwar-cream-200 focus:border-kishtwar-green-900 outline-none rounded-xl px-4 py-2.5 text-gray-700 focus:ring-1 focus:ring-kishtwar-green-900"
             />
           </div>
 
@@ -188,7 +193,7 @@ export default function BlogForm({ categories, initialData }: BlogFormProps) {
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="trekking, adventure, winter"
-              className="text-sm bg-white border border-kishtwar-cream-200 focus:border-kishtwar-green-900 outline-none rounded-xl px-4 py-2.5 text-gray-750 focus:ring-1 focus:ring-kishtwar-green-900"
+              className="text-sm bg-white border border-kishtwar-cream-200 focus:border-kishtwar-green-900 outline-none rounded-xl px-4 py-2.5 text-gray-700 focus:ring-1 focus:ring-kishtwar-green-900"
             />
           </div>
         </div>
