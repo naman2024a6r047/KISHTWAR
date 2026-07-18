@@ -216,7 +216,8 @@ export async function getCurrentUser() {
 export async function requireAuth() {
   const user = await getCurrentUser();
   if (!user) {
-    throw new Error("Authentication required");
+    const { redirect } = await import("next/navigation");
+    redirect("/login");
   }
   return user;
 }
@@ -224,7 +225,8 @@ export async function requireAuth() {
 export async function requireRole(roles: string[]) {
   const user = await requireAuth();
   if (!roles.includes(user.role)) {
-    throw new Error("Insufficient permissions");
+    const { redirect } = await import("next/navigation");
+    redirect("/");
   }
   return user;
 }

@@ -63,12 +63,16 @@ export async function middleware(request: NextRequest) {
         }
       } catch {
         // Token is expired or invalid — if we have a refresh token,
-        // let the request through so the client-side AuthProvider
-        // can handle the refresh flow automatically
+        // redirect to the refresh API route which will refresh the cookies
+        // and redirect back to this page.
         if (!refreshToken) {
           const loginUrl = new URL("/login", request.url);
           loginUrl.searchParams.set("redirect", pathname);
           return NextResponse.redirect(loginUrl);
+        } else {
+          const refreshUrl = new URL("/api/auth/refresh", request.url);
+          refreshUrl.searchParams.set("redirect", pathname);
+          return NextResponse.redirect(refreshUrl);
         }
       }
     }

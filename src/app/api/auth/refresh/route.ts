@@ -113,3 +113,30 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function GET(request: NextRequest) {
+  const redirectUrl = request.nextUrl.searchParams.get("redirect") || "/";
+  
+  try {
+    const postResponse = await POST(request);
+    
+    if (postResponse.status === 200) {
+      const response = NextResponse.redirect(new URL(redirectUrl, request.url));
+      
+      // Copy newly set cookies (access_token, refresh_token) to the redirect response
+      const setCookieHeaders = postResponse.headers.getSetCookie();
+      for (const header of setCookieHeaders) {
+        response.headers.append("Set-Cookie", header);
+      }
+      
+      return response;
+    }
+  } catch (e) {
+    console.error("GET Refresh error:", e);
+  }
+  
+  // If refresh fails, redirect to login
+  const loginUrl = new URL("/login", request.url);
+  loginUrl.searchParams.set("redirect", redirectUrl);
+  return NextResponse.redirect(loginUrl);
+}
