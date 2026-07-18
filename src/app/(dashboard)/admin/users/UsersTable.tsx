@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import DataTable from "@/components/common/DataTable";
-import { updateUserRole, toggleUserActive, deleteUser } from "@/actions/admin.actions";
+import { updateUserRole, toggleUserActive, deleteUser, verifyUserEmail } from "@/actions/admin.actions";
 import type { UserRole } from "@prisma/client";
 import { format } from "date-fns";
 import { Shield, ShieldAlert, Trash2, Ban, CheckCircle, AlertCircle, Sparkles, User, Loader2, BookOpen, MapPin } from "lucide-react";
@@ -65,6 +65,32 @@ export default function UsersTable({ initialUsers }: UsersTableProps) {
         }
       } catch (err) {
         triggerAlert("An error occurred while toggling status.", "error");
+      } finally {
+        setActionUserId(null);
+      }
+    });
+  };
+
+  const handleVerifyEmail = async (userId: number, name: string) => {
+    if (!confirm(`Are you sure you want to manually verify ${name}'s email?`)) {
+      return;
+    }
+
+    setActionUserId(userId);
+    startTransition(async () => {
+      try {
+        const res = await verifyUserEmail(userId);
+        if (res.success) {
+          setUsers((prev) =>
+            prev.map((u) => (u.id === userId ? { ...u, emailVerified: new Date() } : u))
+          );
+          triggerAlert(res.message || "Email verified successfully.", "success");
+          router.refresh();
+        } else {
+          triggerAlert(res.error || "Failed to verify email.", "error");
+        }
+      } catch (err) {
+        triggerAlert("An error occurred while verifying the email.", "error");
       } finally {
         setActionUserId(null);
       }
@@ -136,9 +162,14 @@ export default function UsersTable({ initialUsers }: UsersTableProps) {
               <CheckCircle className="h-2.5 w-2.5 mr-0.5" /> Verified
             </span>
           ) : (
-            <span className="inline-flex items-center text-[9px] text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded-md">
+            <button
+              onClick={() => handleVerifyEmail(row.id, row.name)}
+              disabled={isPending && actionUserId === row.id}
+              className="inline-flex items-center text-[9px] text-amber-600 font-bold bg-amber-50 hover:bg-amber-100 px-1.5 py-0.5 rounded-md transition-colors cursor-pointer disabled:opacity-50"
+              title="Click to manually verify email"
+            >
               <Clock className="h-2.5 w-2.5 mr-0.5" /> Pending
-            </span>
+            </button>
           )}
         </div>
       ),

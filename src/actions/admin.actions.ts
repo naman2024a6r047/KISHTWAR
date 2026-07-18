@@ -253,6 +253,46 @@ export async function updateUserRole(targetUserId: number, newRole: UserRole): P
 }
 
 /**
+ * Verify a user's email manually
+ */
+export async function verifyUserEmail(targetUserId: number): Promise<ApiResponse> {
+  try {
+    const admin = await requireRole(["SUPER_ADMIN"]);
+
+    const user = await prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: { name: true, email: true, emailVerified: true },
+    });
+
+    if (!user) {
+      return { success: false, error: "User not found." };
+    }
+
+    if (user.emailVerified) {
+      return { success: false, error: "User email is already verified." };
+    }
+
+    await prisma.user.update({
+      where: { id: targetUserId },
+      data: { emailVerified: new Date() },
+    });
+
+    await logAdminAction(admin.id, "user.email_verify", "User", targetUserId, {
+      userEmail: user.email,
+    });
+
+    revalidatePath("/admin/users");
+    return {
+      success: true,
+      message: `Successfully verified email for user ${user.name}.`,
+    };
+  } catch (error: any) {
+    console.error("Error verifying user email:", error);
+    return { success: false, error: error.message || "Failed to verify user email." };
+  }
+}
+
+/**
  * Toggle a user's active status (ban/unban)
  */
 export async function toggleUserActive(targetUserId: number): Promise<ApiResponse> {
